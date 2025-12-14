@@ -1,7 +1,40 @@
 import { X, Calendar, User, Globe, Clock, ExternalLink, BookOpen } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function BookSummary({ book, onClose, isSaved, onToggleSave }) {
+    const historyPushedRef = useRef(false);
+
+    // Handle browser back button
+    useEffect(() => {
+        if (book) {
+            // Push a new history state when modal opens
+            if (!historyPushedRef.current) {
+                window.history.pushState({ modal: true }, '');
+                historyPushedRef.current = true;
+            }
+
+            // Listen for back button
+            const handlePopState = (event) => {
+                if (historyPushedRef.current) {
+                    // Back button was pressed, close the modal
+                    historyPushedRef.current = false;
+                    onClose();
+                }
+            };
+
+            window.addEventListener('popstate', handlePopState);
+
+            return () => {
+                window.removeEventListener('popstate', handlePopState);
+                // If modal closes normally (not via back button), remove the history entry
+                if (historyPushedRef.current) {
+                    historyPushedRef.current = false;
+                    window.history.back();
+                }
+            };
+        }
+    }, [book, onClose]);
+
     // Prevent background scrolling when modal is open
     useEffect(() => {
         if (book) {
