@@ -45,6 +45,9 @@ export async function redirectToAuthCodeFlow() {
 
 export async function getAccessToken(code) {
     const verifier = localStorage.getItem("verifier");
+    if (!verifier) {
+        throw new Error("PKCE Verifier missing. This often happens if the 'Redirect URI' domain (e.g., 127.0.0.1) does not match the domain you started on (e.g., localhost). Please start the login from the same domain defined in your .env file.");
+    }
 
     const params = new URLSearchParams();
     params.append("client_id", CLIENT_ID);

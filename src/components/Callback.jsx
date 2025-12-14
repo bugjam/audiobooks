@@ -12,6 +12,13 @@ export default function Callback() {
     const processedRef = useRef(false);
 
     useEffect(() => {
+        // If we already have a token in storage, don't try to exchange code again
+        // This handles double-mounts or re-renders
+        if (localStorage.getItem('spotify_access_token')) {
+            navigate('/');
+            return;
+        }
+
         if (code && !processedRef.current) {
             processedRef.current = true;
             getAccessToken(code).then((tokenData) => {
@@ -20,11 +27,22 @@ export default function Callback() {
                     throw new Error("No access token received from Spotify");
                 }
                 registerToken(tokenData);
+
+                // Clear the hash/query to prevent replay on reload if user stays on this URL
+                // window.history.replaceState({}, document.title, window.location.pathname); 
+                // Don't need replaceState here if we navigate to '/'
+
                 navigate('/');
             }).catch((err) => {
                 console.error("Failed to get token", err);
-                alert("Login missing: " + err.message);
-                navigate('/');
+                // If error is invalid_grant, it usually means code is expired/used. 
+                // If we have a token (race condition?), we are fine.
+                if (err.message.includes('invalid_grant') && localStorage.getItem('spotify_access_token')) {
+                    navigate('/');
+                } else {
+                    alert("Login failed: " + err.message + "\nCheck console for details.");
+                    // navigate('/'); 
+                }
             });
         }
     }, [code, registerToken, navigate]);

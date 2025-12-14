@@ -2,7 +2,7 @@ import { HashRouter, Routes, Route, Navigate, useSearchParams, useNavigate } fro
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Callback from './components/Callback';
 import Home from './components/Home';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 function Login() {
   const { login } = useAuth();
@@ -37,20 +37,25 @@ function PublicRoute({ children }) {
 // because GitHub pages doesn't support SPA routing natively for history mode.
 // We intercept ?code=... and redirect to /#/callback?code=...
 function AuthRedirectHandler() {
-  const navigate = useNavigate();
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    // Check for code in the standard URL search params (not the hash router search params)
+    // Only process once
+    if (processedRef.current) return;
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
 
     if (code) {
-      // Remove query from main URL to clean up
-      window.history.replaceState({}, document.title, window.location.pathname);
-      // Navigate to the callback route within HashRouter
-      navigate(`/callback?code=${code}`);
+      processedRef.current = true;
+
+      // Build the new URL: keep pathname, clear search, set hash with code
+      const newUrl = window.location.pathname + '#/callback?code=' + code;
+
+      // Use location.replace to avoid adding to history and prevent loops
+      window.location.replace(newUrl);
     }
-  }, [navigate]);
+  }, []);
 
   return null;
 }
