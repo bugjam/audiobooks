@@ -76,3 +76,9 @@ This project is configured for automatic deployment to **GitHub Pages**.
 ## 📱 PWA
 
 This application is configured as a PWA. When built for production, it generates a service worker and manifest file allowing users to install the app on their devices.
+
+## License
+
+This project is licensed under the MIT License.
+
+Note: Large portions of the code were generated with the assistance of AI tools. The repository owner claims no exclusive authorship beyond what is permitted by applicable law and licenses the code in good faith.
